@@ -14,7 +14,7 @@
         <div class="recommend">
           <h1 class="recommend-title" v-if="albums.length">热门推荐</h1>
           <ul class="recommend-list">
-            <li class="recommend-item" v-for="item in albums" :key="item.id">
+            <li class="recommend-item" @click="handleClick(item)" v-for="item in albums" :key="item.id">
               <div class="recommend-item-image">
                 <img class="image" v-lazy="item.pic" alt="" />
               </div>
@@ -28,13 +28,12 @@
       </div>
     </b-scroll>
     <b-loading v-if="!albums.length"></b-loading>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import bLoading from '@/bases/b-loading.vue';
-import bScroll from '@/bases/b-scroll.vue';
-import bSlide from '@/bases/b-slide.vue';
+import { mapMutations } from 'vuex';
 import { getRecommend } from '@/services/recommend';
 
 export default {
@@ -49,16 +48,18 @@ export default {
     this.getRecommend();
   },
   methods: {
+    ...mapMutations(['setAlbum']),
     async getRecommend() {
       const { sliders, albums } = await getRecommend();
       this.sliders = sliders;
       this.albums = albums;
+    },
+    handleClick(item) {
+      this.setAlbum(item);
+      this.$router.push({
+        path: `/home/${item.id}`
+      });
     }
-  },
-  components: {
-    bLoading,
-    bScroll,
-    bSlide
   }
 };
 </script>

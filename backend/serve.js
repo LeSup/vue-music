@@ -11,30 +11,30 @@ const dev = process.env.NODE_ENV === 'development';
 
 // 歌曲图片加载失败时使用的默认图片
 const fallbackPicUrl =
-  "https://y.gtimg.cn/mediastyle/music_v11/extra/default_300x300.jpg?max_age=31536000";
+  'https://y.gtimg.cn/mediastyle/music_v11/extra/default_300x300.jpg?max_age=31536000';
 
 // 公共参数
 const commonParams = {
   g_tk: token,
   loginUin: 0,
   hostUin: 0,
-  inCharset: "utf8",
-  outCharset: "utf-8",
+  inCharset: 'utf8',
+  outCharset: 'utf-8',
   notice: 0,
   needNewCode: 0,
-  format: "json",
-  platform: "yqq.json",
+  format: 'json',
+  platform: 'yqq.json'
 };
 
 // 获取一个随机数值
-function getRandomVal(prefix = "") {
-  return prefix + (Math.random() + "").replace("0.", "");
+function getRandomVal(prefix = '') {
+  return prefix + (Math.random() + '').replace('0.', '');
 }
 
 // 获取一个随机 uid
 function getUid() {
   const t = new Date().getUTCMilliseconds();
-  return "" + ((Math.round(2147483647 * Math.random()) * t) % 1e10);
+  return '' + ((Math.round(2147483647 * Math.random()) * t) % 1e10);
 }
 
 function get(url, params) {
@@ -52,17 +52,55 @@ function post(url, params) {
     referer: 'https://y.qq.com/',
     origin: 'https://y.qq.com/',
     'Content-Type': 'application/x-www-form-urlencoded'
-  })
+  });
 }
 
 // 简化singer
 function convertSinger(singerList) {
-  return singerList.map(singer => ({
+  return singerList.map((singer) => ({
     id: singer.singer_id,
     mid: singer.singer_mid,
     name: singer.singer_name,
     pic: singer.singer_pic.replace(/\.webp$/, '.jpg').replace('150x150', '800x800')
   }));
+}
+
+// 合并歌手
+function mergeSinger(singer) {
+  if (!singer) {
+    return '';
+  }
+
+  return singer.map(item => item.name).join('/');
+}
+
+// 构造歌曲列表
+function handleSongList(list) {
+  const songList = [];
+
+  list.forEach((item) => {
+    const info = item.songInfo || item;
+
+    // 过滤付费歌曲和获取不到时长的歌曲
+    if (info.pay.pay_play !== 0 || !info.interval) {
+      return;
+    }
+
+    songList.push({
+      id: info.id,
+      mid: info.mid,
+      name: info.name,
+      singer: mergeSinger(info.singer),
+      url: '', // 播放地址，
+      duration: info.interval,
+      pic: info.album.mid
+        ? `https://y.gtimg.cn/music/photo_new/T002R800x800M000${info.album.mid}.jpg?max_age=2592000`
+        : fallbackPicUrl,
+      album: info.album.name
+    });
+  });
+
+  return songList;
 }
 
 const app = express();
@@ -92,11 +130,11 @@ app.get('/api/getRecommend', (req, res) => {
 
   get(url, {
     sign,
-    '_': randomVal,
+    _: randomVal,
     data
   }).then((response) => {
     const data = response.data;
-    
+
     if (data.code === ERR_OK) {
       const focusList = data.focus.data.shelf.v_niche[0].v_card;
       const sliders = [];
@@ -115,7 +153,7 @@ app.get('/api/getRecommend', (req, res) => {
         sliderItem.id = item.id;
         sliderItem.pic = item.cover;
         if (jumpPrefixMap[item.jumptype]) {
-          sliderItem.link = jumpPrefixMap[item.jumptype] + (item.subid || item.id) + ".html";
+          sliderItem.link = jumpPrefixMap[item.jumptype] + (item.subid || item.id) + '.html';
         } else if (item.jumptype === 3001) {
           sliderItem.link = item.id;
         }
@@ -148,7 +186,49 @@ app.get('/api/getRecommend', (req, res) => {
     } else {
       res.json(data);
     }
-  })
+  });
+});
+
+// 注册歌单专辑接口
+app.get('/api/getAlbum', (req, res) => {
+  const data = {
+    req_0: {
+      module: 'srf_diss_info.DissInfoServer',
+      method: 'CgiGetDiss',
+      param: {
+        disstid: Number(req.query.id),
+        song_begin: 0,
+        song_num: 100
+      }
+    },
+    comm: {
+      g_tk: token,
+      uin: '0',
+      format: 'json',
+      platform: 'h5'
+    }
+  };
+
+  const randomVal = getRandomVal();
+  const sign = getSecuritySign(JSON.stringify(data));
+  const url = `https://u.y.qq.com/cgi-bin/musics.fcg?=${randomVal}&sign=${sign}`;
+
+  post(url, data).then((response) => {
+    const data = response.data;
+    if (data.code === ERR_OK) {
+      const list = data.req_0.data.songlist;
+      const songList = handleSongList(list);
+
+      res.json({
+        code: ERR_OK,
+        result: {
+          songs: songList
+        }
+      });
+    } else {
+      res.json(data);
+    }
+  });
 });
 
 // 注册歌手列表接口
@@ -170,7 +250,7 @@ app.get('/api/getSingerList', (req, res) => {
 
   get(url, {
     sign,
-    '_': randomKey,
+    _: randomKey,
     data
   }).then((response) => {
     const data = response.data;
@@ -226,8 +306,121 @@ app.get('/api/getSingerList', (req, res) => {
     } else {
       res.json(data);
     }
-  })
-})
+  });
+});
+
+// 注册歌手详情接口
+app.get("/api/getSingerDetail", (req, res) => {
+  const url = "https://u.y.qq.com/cgi-bin/musics.fcg";
+
+  const data = JSON.stringify({
+    comm: { ct: 24, cv: 0 },
+    singerSongList: {
+      method: "GetSingerSongList",
+      param: { order: 1, singerMid: req.query.mid, begin: 0, num: 100 },
+      module: "musichall.song_list_server",
+    },
+  });
+
+  const randomKey = getRandomVal("getSingerSong");
+  const sign = getSecuritySign(data);
+
+  get(url, {
+    sign,
+    "-": randomKey,
+    data,
+  }).then((response) => {
+    const data = response.data;
+    if (data.code === ERR_OK) {
+      const list = data.singerSongList.data.songList;
+      const songList = handleSongList(list);
+
+      res.json({
+        code: ERR_OK,
+        result: {
+          songs: songList,
+        },
+      });
+    } else {
+      res.json(data);
+    }
+  });
+});
+
+// 注册歌曲url接口
+app.get('/api/getSongsUrl', (req, res) => {
+  const mid = req.query.mid;
+
+  let midGroup = [];
+  // 第三方接口只支持最多处理 100 条数据，所以如果超过 100 条数据，我们要把数据按每组 100 条切割，发送多个请求
+  if (mid.length > 100) {
+    const group = Math.ceil(mid.length / 100);
+    for (let i = 0; i < group; i++) {
+      midGroup.push(mid.slice(i * 100, (i + 1) * 100));
+    }
+  } else {
+    midGroup = [mid];
+  }
+
+  // 歌曲url获取成功后保存
+  const urlMap = {};
+
+  // 分组请求歌曲url，成功后保存至map
+  function process(mid) {
+    const data = {
+      req_0: {
+        module: "vkey.GetVkeyServer",
+        method: "CgiGetVkey",
+        param: {
+          guid: getUid(),
+          songmid: mid,
+          songtype: new Array(mid.length).fill(0),
+          uin: "0",
+          loginflag: 0,
+          platform: "23",
+          h5to: "speed",
+        },
+      },
+      comm: {
+        g_tk: token,
+        uin: "0",
+        format: "json",
+        platform: "h5",
+      },
+    };
+
+    const sign = getSecuritySign(JSON.stringify(data));
+    const randomVal = getRandomVal();
+    const url = `https://u.y.qq.com/cgi-bin/musics.fcg?_=${randomVal}&sign=${sign}`;
+
+    return post(url, data)
+      .then(response => {
+        const data = response.data;
+        if (data.code === ERR_OK) {
+          const midInfo = data.req_0.data.midurlinfo;
+          const sip = data.req_0.data.sip;
+          const domain = sip[sip.length - 1];
+
+          // 保存歌曲url至map
+          midInfo.forEach(info => {
+            urlMap[info.songmid] = domain + info.purl;
+          })
+        }
+      })
+  }
+
+  // 并行请求midGroup
+  Promise
+    .all(midGroup.map(mid => process(mid)))
+    .then(() => {
+      res.json({
+        code: ERR_OK,
+        result: {
+          map: urlMap
+        }
+      });
+    });
+});
 
 app.listen(port, (err) => {
   if (err) {

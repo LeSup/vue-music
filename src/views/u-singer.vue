@@ -5,7 +5,7 @@
         <div class="group" ref="group" v-for="item in singers" :key="item.title">
           <h2 class="group-title">{{ item.title }}</h2>
           <ul class="singer-list">
-            <li class="singer-item" v-for="singer in item.list" :key="singer.id">
+            <li class="singer-item" @click="handleClick(item)" v-for="singer in item.list" :key="singer.id">
               <div class="singer-item-avatar">
                 <img class="image" v-lazy="singer.pic" />
               </div>
@@ -39,12 +39,12 @@
       </div>
     </b-scroll>
     <b-loading v-if="!singers.length"></b-loading>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import bScroll from '@/bases/b-scroll.vue';
-import bLoading from '@/bases/b-loading.vue';
+import { mapMutations } from 'vuex';
 import { getSingerList } from '@/services/singer';
 
 const TITLE_HEIGHT = 30;
@@ -77,9 +77,16 @@ export default {
     this.getSingerList();
   },
   methods: {
+    ...mapMutations(['setSinger']),
     async getSingerList() {
       const { singers } = await getSingerList();
       this.singers = singers;
+    },
+    handleClick(item) {
+      this.setSinger(item);
+      this.$router.push({
+        path: `/singer/${item.mid}`
+      });
     },
     computeGroupsHeight() {
       const groups = this.$refs.group;
@@ -162,10 +169,6 @@ export default {
       this.$refs.scroll.scrollToElement(this.$refs.group[index], 0);
     }
   },
-  components: {
-    bScroll,
-    bLoading
-  }
 };
 </script>
 

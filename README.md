@@ -30,6 +30,6 @@
 
 ## 项目启动
 
-`pnpm install` 安装项目依赖
-`pnpm serve` 启动后端服务
-`pnpm dev` 启动开发服务
+1. `pnpm install` 安装项目依赖
+2. `pnpm serve` 启动后端服务
+3. `pnpm dev` 启动开发服务
