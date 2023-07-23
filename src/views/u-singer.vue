@@ -5,7 +5,7 @@
         <div class="group" ref="group" v-for="item in singers" :key="item.title">
           <h2 class="group-title">{{ item.title }}</h2>
           <ul class="singer-list">
-            <li class="singer-item" @click="handleClick(item)" v-for="singer in item.list" :key="singer.id">
+            <li class="singer-item" @click="handleClick(singer)" v-for="singer in item.list" :key="singer.id">
               <div class="singer-item-avatar">
                 <img class="image" v-lazy="singer.pic" />
               </div>

@@ -4,5 +4,8 @@ export default {
   },
   setSinger(state, singer) {
     state.singer = singer;
+  },
+  setRank(state, rank) {
+    state.rank = rank;
   }
 }

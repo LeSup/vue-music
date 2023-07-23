@@ -1,4 +1,5 @@
 export default {
   album: state => state.album,
-  singer: state => state.singer
+  singer: state => state.singer,
+  rank: state => state.rank
 }

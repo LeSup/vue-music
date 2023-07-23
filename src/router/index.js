@@ -7,6 +7,7 @@ import uSearch from '@/views/u-search.vue';
 import uMe from '@/views/u-me.vue';
 import uAlbum from '@/views/u-album.vue';
 import uSingerDetail from '@/views/u-singer-detail.vue';
+import uRankDetail from '@/views/u-rank-detail.vue';
 
 Vue.use(VueRouter);
 
@@ -30,6 +31,10 @@ const routes = [{
 }, {
   path: '/rank',
   component: uRank,
+  children: [{
+    path: ':id',
+    component: uRankDetail,
+  }]
 }, {
   path: '/search',
   component: uSearch

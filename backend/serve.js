@@ -7,7 +7,7 @@ const getSecuritySign = require('./sign.js');
 const ERR_OK = 0;
 const token = 5381;
 const port = process.env.PORT || 9000;
-const dev = process.env.NODE_ENV === 'development';
+// const dev = process.env.NODE_ENV === 'development';
 
 // 歌曲图片加载失败时使用的默认图片
 const fallbackPicUrl =
@@ -420,6 +420,109 @@ app.get('/api/getSongsUrl', (req, res) => {
         }
       });
     });
+});
+
+// 注册排行榜接口
+app.get('/api/getTopList', (req, res) => {
+  const url = 'https://u.y.qq.com/cgi-bin/musics.fcg';
+
+  const data = JSON.stringify({
+    comm: { ct: 24 },
+    toplist: {
+      module: 'musicToplist.ToplistInfoServer',
+      method: 'GetAll',
+      param: {}
+    }
+  });
+
+  const randomKey = getRandomVal('recom');
+  const sign = getSecuritySign(data);
+
+  get(url, {
+    sign,
+    '-': randomKey,
+    data
+  }).then(response => {
+    const data = response.data;
+    if (data.code === ERR_OK) {
+      const topList = [];
+      const group = data.toplist.data.group;
+
+      group.forEach((item) => {
+        item.toplist.forEach((listItem) => {
+          topList.push({
+            id: listItem.topId,
+            pic: listItem.frontPicUrl,
+            name: listItem.title,
+            period: listItem.period,
+            songList: listItem.song.map((songItem) => {
+              return {
+                id: songItem.songId,
+                singerName: songItem.singerName,
+                songName: songItem.title,
+              };
+            }),
+          });
+        });
+      });
+
+      res.json({
+        code: ERR_OK,
+        result: {
+          topList,
+        },
+      });
+    } else {
+      res.json(data);
+    }
+  });
+});
+
+// 注册排行榜接口
+app.get('/api/getTopDetail', (req, res) => {
+  const url = "https://u.y.qq.com/cgi-bin/musics.fcg";
+  const { id, period } = req.query;
+
+  const data = JSON.stringify({
+    detail: {
+      module: "musicToplist.ToplistInfoServer",
+      method: "GetDetail",
+      param: {
+        topId: Number(id),
+        offset: 0,
+        num: 100,
+        period,
+      },
+    },
+    comm: {
+      ct: 24,
+      cv: 0,
+    },
+  });
+
+  const randomKey = getRandomVal("getUCGI");
+  const sign = getSecuritySign(data);
+
+  get(url, {
+    sign,
+    "-": randomKey,
+    data,
+  }).then((response) => {
+    const data = response.data;
+    if (data.code === ERR_OK) {
+      const list = data.detail.data.songInfoList;
+      const songList = handleSongList(list);
+
+      res.json({
+        code: ERR_OK,
+        result: {
+          songs: songList,
+        },
+      });
+    } else {
+      res.json(data);
+    }
+  });
 });
 
 app.listen(port, (err) => {

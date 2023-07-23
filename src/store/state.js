@@ -1,4 +1,5 @@
 export default {
   album: {},
-  singer: {}
+  singer: {},
+  rank: {}
 }

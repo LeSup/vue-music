@@ -1,7 +1,8 @@
 <template>
   <div class="c-list">
     <ul class="c-list-ul">
-      <li class="c-list-li" v-for="item of data" :key="item.id">
+      <li class="c-list-li" v-for="(item, index) of data" :key="item.id">
+        <div class="c-list-li-rank" v-if="rank">{{ index + 1 }}</div>
         <div class="c-list-li-content">
           <div class="title">{{ item.name }}</div>
           <div class="desc">{{ item.singer }}-{{ item.album }}</div>
@@ -15,6 +16,10 @@
 export default {
   name: 'c-list',
   props: {
+    rank: {
+      type: Boolean,
+      default: false
+    },
     data: {
       type: Array,
       default() {
@@ -30,10 +35,43 @@ export default {
   padding: 20px;
   background-color: var(--color-background);
 }
-.c-list-li:not(:last-child) {
-  padding-bottom: 20px;
+.c-list-li {
+  display: flex;
+  align-items: center;
+  &:not(:last-child) {
+    padding-bottom: 20px;
+  }
+  &:nth-child(1) {
+    .c-list-li-rank {
+      .adapt-image('../assets/images/first');
+      color: transparent;
+    }
+  }
+  &:nth-child(2) {
+    .c-list-li-rank {
+      .adapt-image('../assets/images/second');
+      color: transparent;
+    }
+  }
+  &:nth-child(3) {
+    .c-list-li-rank {
+      .adapt-image('../assets/images/third');
+      color: transparent;
+    }
+  }
+}
+.c-list-li-rank {
+  margin-right: 20px;
+  .square(26px);
+  font-size: var(--font-size-medium-x);
+  line-height: 26px;
+  text-align: center;
+  color: var(--color-theme);
+  background-size: 100% 100%;
 }
 .c-list-li-content {
+  flex: 1;
+  min-width: 0;
   font-size: var(--font-size-medium);
   line-height: 24px;
   .title {

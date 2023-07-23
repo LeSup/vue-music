@@ -14,10 +14,10 @@
     </div>
     <div class="song-wrapper">
       <b-scroll :probeType="3" @scroll="handleScroll" class="song-list">
-        <c-list :data="songs"></c-list>
-        <!-- 绝对定位的父级是绝对定位时，存在bug -->
-        <b-loading v-if="!songs.length"></b-loading>
+        <c-list :data="songs" :rank="rank"></c-list>
       </b-scroll>
+      <!-- 绝对定位的父级是绝对定位时，存在bug -->
+      <b-loading v-if="!songs.length"></b-loading>
     </div>
   </div>
 </template>
@@ -44,6 +44,10 @@ export default {
       default() {
         return []
       }
+    },
+    rank: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
