@@ -2,6 +2,7 @@ const express = require('express');
 const pinyin = require('pinyin');
 const cookieParser = require('cookie-parser');
 const axios = require('axios');
+const Base64 = require('js-base64').Base64;
 const getSecuritySign = require('./sign.js');
 
 const ERR_OK = 0;
@@ -71,7 +72,7 @@ function mergeSinger(singer) {
     return '';
   }
 
-  return singer.map(item => item.name).join('/');
+  return singer.map((item) => item.name).join('/');
 }
 
 // 构造歌曲列表
@@ -231,6 +232,30 @@ app.get('/api/getAlbum', (req, res) => {
   });
 });
 
+// 注册歌词接口
+app.get('/api/getLyric', (req, res) => {
+  const url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg';
+
+  get(url, {
+    '-': 'MusicJsonCallback_lrc',
+    pcachetime: +new Date(),
+    songmid: req.query.mid,
+    g_tk_new_20200303: token
+  }).then((response) => {
+    const data = response.data;
+    if (data.code === ERR_OK) {
+      res.json({
+        code: ERR_OK,
+        result: {
+          lyric: Base64.decode(data.lyric)
+        }
+      });
+    } else {
+      res.json(data);
+    }
+  });
+});
+
 // 注册歌手列表接口
 app.get('/api/getSingerList', (req, res) => {
   const url = 'https://u.y.qq.com/cgi-bin/musics.fcg';
@@ -310,25 +335,25 @@ app.get('/api/getSingerList', (req, res) => {
 });
 
 // 注册歌手详情接口
-app.get("/api/getSingerDetail", (req, res) => {
-  const url = "https://u.y.qq.com/cgi-bin/musics.fcg";
+app.get('/api/getSingerDetail', (req, res) => {
+  const url = 'https://u.y.qq.com/cgi-bin/musics.fcg';
 
   const data = JSON.stringify({
     comm: { ct: 24, cv: 0 },
     singerSongList: {
-      method: "GetSingerSongList",
+      method: 'GetSingerSongList',
       param: { order: 1, singerMid: req.query.mid, begin: 0, num: 100 },
-      module: "musichall.song_list_server",
-    },
+      module: 'musichall.song_list_server'
+    }
   });
 
-  const randomKey = getRandomVal("getSingerSong");
+  const randomKey = getRandomVal('getSingerSong');
   const sign = getSecuritySign(data);
 
   get(url, {
     sign,
-    "-": randomKey,
-    data,
+    '-': randomKey,
+    data
   }).then((response) => {
     const data = response.data;
     if (data.code === ERR_OK) {
@@ -338,8 +363,8 @@ app.get("/api/getSingerDetail", (req, res) => {
       res.json({
         code: ERR_OK,
         result: {
-          songs: songList,
-        },
+          songs: songList
+        }
       });
     } else {
       res.json(data);
@@ -369,57 +394,54 @@ app.get('/api/getSongsUrl', (req, res) => {
   function process(mid) {
     const data = {
       req_0: {
-        module: "vkey.GetVkeyServer",
-        method: "CgiGetVkey",
+        module: 'vkey.GetVkeyServer',
+        method: 'CgiGetVkey',
         param: {
           guid: getUid(),
           songmid: mid,
           songtype: new Array(mid.length).fill(0),
-          uin: "0",
+          uin: '0',
           loginflag: 0,
-          platform: "23",
-          h5to: "speed",
-        },
+          platform: '23',
+          h5to: 'speed'
+        }
       },
       comm: {
         g_tk: token,
-        uin: "0",
-        format: "json",
-        platform: "h5",
-      },
+        uin: '0',
+        format: 'json',
+        platform: 'h5'
+      }
     };
 
     const sign = getSecuritySign(JSON.stringify(data));
     const randomVal = getRandomVal();
     const url = `https://u.y.qq.com/cgi-bin/musics.fcg?_=${randomVal}&sign=${sign}`;
 
-    return post(url, data)
-      .then(response => {
-        const data = response.data;
-        if (data.code === ERR_OK) {
-          const midInfo = data.req_0.data.midurlinfo;
-          const sip = data.req_0.data.sip;
-          const domain = sip[sip.length - 1];
+    return post(url, data).then((response) => {
+      const data = response.data;
+      if (data.code === ERR_OK) {
+        const midInfo = data.req_0.data.midurlinfo;
+        const sip = data.req_0.data.sip;
+        const domain = sip[sip.length - 1];
 
-          // 保存歌曲url至map
-          midInfo.forEach(info => {
-            urlMap[info.songmid] = domain + info.purl;
-          })
-        }
-      })
+        // 保存歌曲url至map
+        midInfo.forEach((info) => {
+          urlMap[info.songmid] = domain + info.purl;
+        });
+      }
+    });
   }
 
   // 并行请求midGroup
-  Promise
-    .all(midGroup.map(mid => process(mid)))
-    .then(() => {
-      res.json({
-        code: ERR_OK,
-        result: {
-          map: urlMap
-        }
-      });
+  Promise.all(midGroup.map((mid) => process(mid))).then(() => {
+    res.json({
+      code: ERR_OK,
+      result: {
+        map: urlMap
+      }
     });
+  });
 });
 
 // 注册排行榜接口
@@ -442,7 +464,7 @@ app.get('/api/getTopList', (req, res) => {
     sign,
     '-': randomKey,
     data
-  }).then(response => {
+  }).then((response) => {
     const data = response.data;
     if (data.code === ERR_OK) {
       const topList = [];
@@ -459,9 +481,9 @@ app.get('/api/getTopList', (req, res) => {
               return {
                 id: songItem.songId,
                 singerName: songItem.singerName,
-                songName: songItem.title,
+                songName: songItem.title
               };
-            }),
+            })
           });
         });
       });
@@ -469,8 +491,8 @@ app.get('/api/getTopList', (req, res) => {
       res.json({
         code: ERR_OK,
         result: {
-          topList,
-        },
+          topList
+        }
       });
     } else {
       res.json(data);
@@ -480,33 +502,33 @@ app.get('/api/getTopList', (req, res) => {
 
 // 注册排行榜接口
 app.get('/api/getTopDetail', (req, res) => {
-  const url = "https://u.y.qq.com/cgi-bin/musics.fcg";
+  const url = 'https://u.y.qq.com/cgi-bin/musics.fcg';
   const { id, period } = req.query;
 
   const data = JSON.stringify({
     detail: {
-      module: "musicToplist.ToplistInfoServer",
-      method: "GetDetail",
+      module: 'musicToplist.ToplistInfoServer',
+      method: 'GetDetail',
       param: {
         topId: Number(id),
         offset: 0,
         num: 100,
-        period,
-      },
+        period
+      }
     },
     comm: {
       ct: 24,
-      cv: 0,
-    },
+      cv: 0
+    }
   });
 
-  const randomKey = getRandomVal("getUCGI");
+  const randomKey = getRandomVal('getUCGI');
   const sign = getSecuritySign(data);
 
   get(url, {
     sign,
-    "-": randomKey,
-    data,
+    '-': randomKey,
+    data
   }).then((response) => {
     const data = response.data;
     if (data.code === ERR_OK) {
@@ -516,8 +538,8 @@ app.get('/api/getTopDetail', (req, res) => {
       res.json({
         code: ERR_OK,
         result: {
-          songs: songList,
-        },
+          songs: songList
+        }
       });
     } else {
       res.json(data);

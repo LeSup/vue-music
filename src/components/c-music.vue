@@ -14,7 +14,7 @@
     </div>
     <div class="song-wrapper">
       <b-scroll :probeType="3" @scroll="handleScroll" class="song-list">
-        <c-list :data="songs" :rank="rank"></c-list>
+        <c-list :data="songs" :rank="rank" @click="selectItem"></c-list>
       </b-scroll>
       <!-- 绝对定位的父级是绝对定位时，存在bug -->
       <b-loading v-if="!songs.length"></b-loading>
@@ -23,10 +23,11 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
 import cList from '@/components/c-list.vue';
 
 const MAX_BLUR = 10;
-const HEADER_HEIGHT = 40;
+const HEADER_HEIGHT = 44;
 
 export default {
   name: 'c-music',
@@ -67,6 +68,7 @@ export default {
     this.maxScrollUpHeight = this.maxScrollDownHeight - HEADER_HEIGHT;
   },
   methods: {
+    ...mapActions(['randomPlay', 'sequencePlay']),
     back() {
       this.$router.go(-1);
     },
@@ -79,7 +81,10 @@ export default {
       }
     },
     handlePlay() {
-      console.log(123);
+      this.randomPlay(this.songs);
+    },
+    selectItem(item, index) {
+      this.sequencePlay({ songs: this.songs, index });
     },
     _scrollUp(y) {
       let blur = 0, fixed = false;
@@ -121,16 +126,16 @@ export default {
   top: 0;
   left: 0;
   right: 0;
-  padding: 0 40px;
-  height: 40px;
-  line-height: 40px;
+  padding: 0 44px;
+  height: 44px;
+  line-height: 44px;
   text-align: center;
   z-index: 2;
 }
 .header-icon {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   font-size: 20px;
   color: var(--color-theme);
 }
@@ -146,7 +151,7 @@ export default {
   transform-origin: top center;
   background-size: 100%;
   &.active {
-    height: 40px;
+    height: 44px;
     z-index: 1;
   }
 }

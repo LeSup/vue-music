@@ -20,6 +20,9 @@ dependencies:
   axios-retry:
     specifier: ^3.5.1
     version: 3.5.1
+  lyric-parser:
+    specifier: ^1.0.1
+    version: 1.0.1
   vue:
     specifier: ^2.7.7
     version: 2.7.7
@@ -1746,6 +1749,10 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
+
+  /lyric-parser@1.0.1:
+    resolution: {integrity: sha512-klGkA3gsKMyHENefKj1OnbscWRAxvxNsYNuxgmSIQg6KqVx/HnTrfcD/gNP74XBcu7HSh+kGhCjetPlH91OtFA==}
+    dev: false
 
   /magic-string@0.26.7:
     resolution: {integrity: sha512-hX9XH3ziStPoPhJxLq1syWuZMxbDvGNbVchfrdCtanC7D13888bMFow61x8axrx+GfHLtVeAx2kxL7tTGRl+Ow==}

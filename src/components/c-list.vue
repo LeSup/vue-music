@@ -1,7 +1,7 @@
 <template>
   <div class="c-list">
     <ul class="c-list-ul">
-      <li class="c-list-li" v-for="(item, index) of data" :key="item.id">
+      <li class="c-list-li" @click="handleClick(item, index)" v-for="(item, index) of data" :key="item.id">
         <div class="c-list-li-rank" v-if="rank">{{ index + 1 }}</div>
         <div class="c-list-li-content">
           <div class="title">{{ item.name }}</div>
@@ -23,11 +23,16 @@ export default {
     data: {
       type: Array,
       default() {
-        return []
+        return [];
       }
     }
   },
-}
+  methods: {
+    handleClick(...rest) {
+      this.$emit('click', ...rest);
+    }
+  }
+};
 </script>
 
 <style lang="less" scoped>
