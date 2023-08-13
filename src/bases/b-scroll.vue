@@ -26,7 +26,7 @@ export default {
     this.init();
   },
   beforeDestroy() {
-    this.bs.destroy()
+    this.bs?.destroy()
   },
   methods: {
     init() {
@@ -43,7 +43,10 @@ export default {
       }
     },
     scrollToElement(...args) {
-      this.bs.scrollToElement(...args);
+      this.bs?.scrollToElement(...args);
+    },
+    refresh() {
+      this.bs?.refresh();
     }
   }
 }

@@ -1,9 +1,9 @@
 <template>
-  <transition appear name="fade" v-if="playSong">
-    <div class="c-player">
-      <div class="player" v-show="fullScreen">
-        <div class="bottom" :style="bottomPic">
-          <div class="bottom-filter"></div>
+  <div class="c-player" v-show="showPlayer">
+    <transition name="normal" @enter="enter" @after-enter="afterEnter" @leave="leave" @after-leave="afterLeave">
+      <div class="normal-player" v-show="fullScreen">
+        <div class="bg" :style="bottomPic">
+          <div class="bg-filter"></div>
         </div>
         <header class="header">
           <i class="header-icon icon-back" @click="toggleFullScreen"></i>
@@ -16,12 +16,12 @@
           <div
             class="middle-swipe"
             @touchstart="handleTouchStart"
-            @touchmove="handleTouchMove"
+            @touchmove.prevent="handleTouchMove"
             @touchend="handleTouchEnd"
           >
             <div class="middle-swipe-l" ref="swipeL">
               <div class="l-cd-wrapper">
-                <div class="l-cd-image">
+                <div class="l-cd-image" ref="cd">
                   <img
                     class="image rotating"
                     :class="{ 'rotating--paused': !this.playing }"
@@ -56,7 +56,12 @@
         <footer class="footer">
           <div class="footer-progress">
             <div class="time time--l">{{ playedDuration }}</div>
-            <b-progress-bar class="progress" :value="percent" @change="handleChange"></b-progress-bar>
+            <b-progress-bar
+              class="progress"
+              v-if="showPlayer"
+              :value="percent"
+              @change="handleChange"
+            ></b-progress-bar>
             <div class="time time--r">{{ songDuration }}</div>
           </div>
           <div class="footer-controls">
@@ -68,45 +73,48 @@
           </div>
         </footer>
       </div>
-      <div class="mini" v-show="!fullScreen" @click="toggleFullScreen">
-       <div class="mini-container">
-        <div class="mini-cd">
-          <img
-            class="image rotating"
-            :class="{ 'rotating--paused': !this.playing }"
-            :src="playSong.pic"
-          />
-        </div>
-        <div class="mini-desc">
-          <div class="mini-title">{{ playSong.name }}</div>
-          <div class="mini-lyric">
-            <transition name="text-scroll" mode="out-in">
-              <p class="txt" :key="curTxt" v-html="curTxt"></p>
-            </transition>
+    </transition>
+    <transition name="mini">
+      <div class="mini-player" v-show="!fullScreen" @click="toggleFullScreen">
+        <div class="mini-container">
+          <div class="mini-cd">
+            <img
+              class="image rotating"
+              :class="{ 'rotating--paused': !this.playing }"
+              :src="playSong.pic"
+            />
+          </div>
+          <div class="mini-desc">
+            <div class="mini-title">{{ playSong.name }}</div>
+            <div class="mini-lyric">
+              <transition name="text-scroll" mode="out-in">
+                <p class="txt" :key="curTxt" v-html="curTxt"></p>
+              </transition>
+            </div>
+          </div>
+          <div class="mini-control" @click.stop="handlePlay">
+            <b-play-progress :percent="percent" :playing="playing"></b-play-progress>
+          </div>
+          <div class="mini-control">
+            <div class="icon icon-playlist"></div>
           </div>
         </div>
-        <div class="mini-control" @click.stop="handlePlay">
-          <b-play-progress :percent="percent" :playing="playing"></b-play-progress>
-        </div>
-        <div class="mini-control">
-          <div class="icon icon-playlist"></div>
-        </div>
-       </div>
       </div>
-      <audio
-        ref="audio"
-        :src="playSong.url"
-        @timeupdate="handleTimeUpdate"
-        @canplay="handleCanplay"
-        @ended="handleEnd"
-      />
-    </div>
-  </transition>
+    </transition>
+    <audio
+      ref="audio"
+      :src="playSong.url"
+      @timeupdate="handleTimeUpdate"
+      @canplay="handleCanplay"
+      @ended="handleEnd"
+    />
+  </div>
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex';
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import LyricParser from 'lyric-parser';
+import animations from 'create-keyframe-animation';
 import { getLyric } from '@/services/song';
 import { format } from '@/utils';
 import { PlayMode } from '@/store/constants';
@@ -120,11 +128,15 @@ export default {
       curLine: 0,
       percent: 0,
       swipe: 'cd',
-      loading: false,
+      loading: false
     };
   },
   computed: {
+    ...mapState(['playList']),
     ...mapGetters(['playSong', 'playing', 'playMode']),
+    showPlayer() {
+      return !!this.playList.length;
+    },
     bottomPic() {
       return { backgroundImage: `url(${this.playSong.pic})` };
     },
@@ -211,6 +223,55 @@ export default {
     toggleFullScreen() {
       this.fullScreen = !this.fullScreen;
     },
+    enter(el, done) {
+      const { x, y } = this._getPos();
+      animations.registerAnimation({
+        name: 'move',
+        animation: {
+          0: {
+            transform: `translate(${-x}px, ${y}px) scale(0)`
+          },
+          60: {
+            transform: 'translate(0, 0) scale(1.1)'
+          },
+          100: {
+            transform: 'translate(0, 0) scale(1)'
+          }
+        },
+        presets: {
+          duration: 400,
+          easing: 'linear'
+        }
+      });
+      animations.runAnimation(this.$refs.cd, 'move', done);
+    },
+    afterEnter() {
+      animations.unregisterAnimation('move');
+      this.$refs.cd.style.animation = '';
+    },
+    leave(el, done) {
+      const { x, y } = this._getPos();
+      const cd = this.$refs.cd;
+      cd.style.transition = 'transform 0.4s';
+      cd.style.transform = `translate(${-x}px, ${y}px)`;
+      cd.addEventListener('transitionend', done);
+    },
+    afterLeave() {
+      const cd = this.$refs.cd;
+      cd.style.transition = '';
+      cd.style.transform = '';
+    },
+    _getPos() {
+      const innerWidth = window.innerWidth;
+      const innerHeight = window.innerHeight;
+      const width = innerWidth * 0.8;
+      const x = (innerWidth * 0.5) - (40 / 2 - 20);
+      const y = (innerHeight - 58 - 32 - width / 2) - (40 / 2 - 10);
+      return {
+        x,
+        y
+      };
+    },
     /* audio事件 */
     handleCanplay() {
       if (this.canplay) {
@@ -253,14 +314,13 @@ export default {
         return;
       }
 
-      
       const swipe = this.swipe;
       let opacity, translateX;
       // 左滑，唱片逐渐透明、歌词向左移动
       if (swipe === 'cd' && deltaX < 0) {
         opacity = Math.max(0, (this.clientWidth + deltaX) / this.clientWidth);
         translateX = Math.max(-this.clientWidth, deltaX);
-      // 右滑，唱片慢慢显示、歌词向右移动
+        // 右滑，唱片慢慢显示、歌词向右移动
       } else if (swipe === 'lyric' && deltaX > 0) {
         opacity = Math.min(1, deltaX / this.clientWidth);
         translateX = Math.min(deltaX - this.clientWidth, 0);
@@ -282,7 +342,7 @@ export default {
           opacity,
           translateX;
 
-        if ((swipe === 'cd' && ratio >= 0.4) || (swipe === 'lyric' && ratio < 0.4)) {
+        if ((swipe === 'cd' && ratio >= 0.3) || (swipe === 'lyric' && ratio < 0.3)) {
           opacity = 0;
           translateX = -this.clientWidth;
           swipe = 'lyric';
@@ -302,7 +362,7 @@ export default {
     /* 唱片、歌词滑动事件 */
     lyricParserCb({ lineNum }) {
       this.curLine = lineNum;
-      if (lineNum > 6) {
+      if (lineNum > 5) {
         this.$refs.scroll.scrollToElement(this.$refs.lyricItem[lineNum - 6], 100);
       }
     },
@@ -332,23 +392,30 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-.player {
+.normal-player {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  transition: opacity 0.4s;
+  .header,
+  .footer {
+    transition: transform 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32);
+  }
+}
+.normal-enter,
+.normal-leave-to {
+  opacity: 0;
+  .header {
+    transform: translateY(-100%);
+  }
+  .footer {
+    transform: translateY(100%);
+  }
 }
 // 底片
-.bottom {
+.bg {
   position: absolute;
   top: 0;
   left: 0;
@@ -466,7 +533,8 @@ export default {
     }
   }
 }
-.lyric-list,.no-lyric {
+.lyric-list,
+.no-lyric {
   padding: 0 20px;
   text-align: center;
   font-size: var(--font-size-medium);
@@ -526,12 +594,17 @@ export default {
   }
 }
 
-.mini {
+.mini-player {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--color-background);
+  background-color: var(--color-highlight-background);
+  transition: opacity 0.4s;
+  &.mini-enter,
+  &.mini-leave-to {
+    opacity: 0;
+  }
 }
 .mini-container {
   display: flex;

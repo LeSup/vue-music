@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="song-wrapper">
-      <b-scroll :probeType="3" @scroll="handleScroll" class="song-list">
+      <b-scroll :probeType="3" ref="scroll" @scroll="handleScroll" class="song-list">
         <c-list :data="songs" :rank="rank" @click="selectItem"></c-list>
       </b-scroll>
       <!-- 绝对定位的父级是绝对定位时，存在bug -->
@@ -24,6 +24,7 @@
 
 <script>
 import { mapActions } from 'vuex';
+import { playerMixin } from '@/mixins';
 import cList from '@/components/c-list.vue';
 
 const MAX_BLUR = 10;
@@ -31,6 +32,7 @@ const HEADER_HEIGHT = 44;
 
 export default {
   name: 'c-music',
+  mixins: [playerMixin],
   props: {
     title: {
       type: String,
@@ -69,6 +71,12 @@ export default {
   },
   methods: {
     ...mapActions(['randomPlay', 'sequencePlay']),
+    handlePlayList(list) {
+      const height = list?.length ? 60 : 0;
+      const scroll = this.$refs.scroll;
+      scroll.$el.style.height = `calc(100% - ${height}px)`;
+      scroll.refresh();
+    },
     back() {
       this.$router.go(-1);
     },

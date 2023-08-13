@@ -5,7 +5,7 @@
         <div class="c-list-li-rank" v-if="rank">{{ index + 1 }}</div>
         <div class="c-list-li-content">
           <div class="title">{{ item.name }}</div>
-          <div class="desc">{{ item.singer }}-{{ item.album }}</div>
+          <div class="desc">{{ getDesc(item) }}</div>
         </div>
       </li>
     </ul>
@@ -30,6 +30,9 @@ export default {
   methods: {
     handleClick(...rest) {
       this.$emit('click', ...rest);
+    },
+    getDesc(item) {
+      return [item.singer, item.album].filter(_ => _).join('-')
     }
   }
 };

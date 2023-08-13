@@ -1,6 +1,6 @@
 <template>
   <div class="rank">
-    <b-scroll>
+    <b-scroll ref="scroll">
       <div>
         <ul class="top-list">
           <li class="top-item" @click="handleClick(item)" v-for="item in topList" :key="item.id">
@@ -23,10 +23,12 @@
 
 <script>
 import { mapMutations } from 'vuex';
+import { playerMixin } from '@/mixins';
 import { getTopList } from '@/services/top-list';
 
 export default {
   name: 'u-rank',
+  mixins: [playerMixin],
   data() {
     return {
       topList: []
@@ -37,6 +39,12 @@ export default {
   },
   methods: {
     ...mapMutations(['setRank']),
+    handlePlayList(list) {
+      const height = list?.length ? 60 : 0;
+      const scroll = this.$refs.scroll;
+      scroll.$el.style.height = `calc(100% - ${height}px)`;
+      scroll.refresh();
+    },
     async getTopList() {
       const { topList } = await getTopList();
       this.topList = topList;
@@ -53,7 +61,11 @@ export default {
 
 <style lang="less" scoped>
 .rank {
-  height: calc(100vh - 88px);
+  position: absolute;
+  top: 88px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
 }
 .top-item {

@@ -7,7 +7,7 @@
       ref="thumb"
       class="b-progress-thumb"
       @touchstart.stop="handleTouchStart"
-      @touchmove.stop="handleTouchMove"
+      @touchmove.stop.prevent="handleTouchMove"
       @touchend.stop="handleTouchEnd"
     ></div>
   </div>
@@ -97,7 +97,7 @@ export default {
   top: 6px;
   height: 4px;
   border-radius: 2px;
-  background-color: var(--color-background-l);
+  background-color: var(--color-highlight-background);
 }
 .b-progress-track-bar {
   position: absolute;

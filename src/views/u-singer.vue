@@ -23,7 +23,7 @@
         <ul
           class="shortcut-list"
           @touchstart.stop="handleTouchstart"
-          @touchmove.stop="handleTouchmove"
+          @touchmove.stop.prevent="handleTouchmove"
           @touchend.stop="handleTouchend"
         >
           <li
@@ -45,6 +45,7 @@
 
 <script>
 import { mapMutations } from 'vuex';
+import { playerMixin } from '@/mixins';
 import { getSingerList } from '@/services/singer';
 
 const TITLE_HEIGHT = 30;
@@ -52,6 +53,7 @@ const SHORTCUT_ITEM_HEIGHT = 18;
 
 export default {
   name: 'u-singer',
+  mixins: [playerMixin],
   data() {
     return {
       singers: [],
@@ -78,6 +80,12 @@ export default {
   },
   methods: {
     ...mapMutations(['setSinger']),
+    handlePlayList(list) {
+      const height = list?.length ? 60 : 0;
+      const scroll = this.$refs.scroll;
+      scroll.$el.style.height = `calc(100% - ${height}px)`;
+      scroll.refresh();
+    },
     async getSingerList() {
       const { singers } = await getSingerList();
       this.singers = singers;
@@ -174,7 +182,11 @@ export default {
 
 <style lang="less" scoped>
 .singer {
-  height: calc(100vh - 88px);
+  position: absolute;
+  top: 88px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
 }
 .group-title,

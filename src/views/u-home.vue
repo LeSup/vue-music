@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <b-scroll>
+    <b-scroll ref="scroll">
       <div>
         <div class="slide-wrapper">
           <div class="slide-container">
@@ -34,10 +34,12 @@
 
 <script>
 import { mapMutations } from 'vuex';
+import { playerMixin } from '@/mixins';
 import { getRecommend } from '@/services/recommend';
 
 export default {
   name: 'u-home',
+  mixins: [playerMixin],
   data() {
     return {
       sliders: [],
@@ -49,6 +51,12 @@ export default {
   },
   methods: {
     ...mapMutations(['setAlbum']),
+    handlePlayList(list) {
+      const height = list?.length ? 60 : 0;
+      const scroll = this.$refs.scroll;
+      scroll.$el.style.height = `calc(100% - ${height}px)`;
+      scroll.refresh();
+    },
     async getRecommend() {
       const { sliders, albums } = await getRecommend();
       this.sliders = sliders;
@@ -66,7 +74,11 @@ export default {
 
 <style lang="less" scoped>
 .home {
-  height: calc(100vh - 88px);
+  position: absolute;
+  top: 88px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   overflow: hidden;
 }
 // 轮播图
