@@ -208,7 +208,6 @@ export default {
         lyricParser.seek(this.currentTime);
       }
       this.lyricParser = lyricParser;
-      console.log(lyricParser);
     },
     handleChange(percent) {
       const currentTime = Math.floor(this.playSong.duration * percent);

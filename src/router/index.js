@@ -37,7 +37,11 @@ const routes = [{
   }]
 }, {
   path: '/search',
-  component: uSearch
+  component: uSearch,
+  children: [{
+    path: ':id',
+    component: uSingerDetail,
+  }]
 }, {
   path: '/me',
   component: uMe

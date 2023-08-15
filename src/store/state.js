@@ -1,3 +1,4 @@
+import { history } from '@/utils/cache';
 import { PlayMode } from './constants';
 
 export default {
@@ -6,7 +7,8 @@ export default {
   rank: {},
   songList: [],
   playList: [],
-  playIndex: 0,
+  playIndex: -1,
   playing: false,
-  playMode: PlayMode.sequence
+  playMode: PlayMode.sequence,
+  historyList: history.load()
 }

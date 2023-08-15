@@ -3,7 +3,9 @@
     <u-svg></u-svg>
     <c-header></c-header>
     <c-nav></c-nav>
-    <router-view></router-view>
+    <keep-alive>
+      <router-view></router-view>
+    </keep-alive>
     <c-player></c-player>
   </div>
 </template>

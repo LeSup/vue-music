@@ -1,4 +1,6 @@
 import { shuffle } from '@/utils';
+import { history } from '@/utils/cache';
+import { findIndex } from '@/utils/array';
 import { PlayMode } from './constants';
 
 // 随机播放
@@ -62,4 +64,62 @@ export function toggleMode({ commit, state, getters }) {
     commit('setPlayIndex', playIndex);
   }
   commit('setPlayMode', mode);
+}
+
+// 删除列表中重复的项，并在当前项的后面插入
+function spliceArray(list, current, insert) {
+  // 当前项在列表中的位置
+  let cIdx = findIndex(list, i => i.id === current.id);
+  // 要插入的项在列表中的位置
+  let dIdx = findIndex(list, i => i.id === insert.id);
+
+  let idx
+  if (dIdx === -1) {
+    idx = cIdx + 1;
+  } else {
+    if (idx < cIdx) {
+      idx = cIdx;
+    } else if (idx > cIdx) {
+      idx = cIdx + 1;
+    }
+    if (idx !== cIdx) {
+      list.splice(idx, 1);
+    }
+  }
+
+  if (idx >= 0) {
+    list.splice(idx, 0, insert);
+  } else {
+    idx = cIdx;
+  }
+
+  return idx;
+}
+
+// 插入歌曲
+export function insertSong({ commit, state, getters }, song) {
+  const { songList, playList } = state;
+  const { playSong } = getters;
+
+  const newPlayList = [...playList];
+  let pIdx = spliceArray(newPlayList, playSong, song);
+
+  const newSongList = [...songList];
+  spliceArray(newSongList, playSong, song);
+
+  commit('setSongList', newSongList);
+  commit('setPlayList', newPlayList);
+  commit('setPlayIndex', pIdx);
+}
+
+export function saveHistory({ commit }, val) {
+  commit('setHistoryList', history.save(val));
+}
+
+export function removeHistory({ commit }, val) {
+  commit('setHistoryList', history.remove(val));
+}
+
+export function clearHistory({ commit }) {
+  commit('setHistoryList', history.clear());
 }

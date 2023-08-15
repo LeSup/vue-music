@@ -22,5 +22,8 @@ export default {
   },
   setPlayMode(state, playMode) {
     state.playMode = playMode;
+  },
+  setHistoryList(state, list) {
+    state.historyList = list;
   }
 }

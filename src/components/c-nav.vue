@@ -9,8 +9,8 @@
     <router-link to="/rank" tag="div" class="link">
       <span class="link_text">排行</span>
     </router-link>
-    <router-link to="/me" tag="div" class="link">
-      <span class="link_text">我的</span>
+    <router-link to="/search" tag="div" class="link">
+      <span class="link_text">搜索</span>
     </router-link>
   </nav>
 </template>

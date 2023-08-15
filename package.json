@@ -15,6 +15,7 @@
     "axios": "^1.4.0",
     "axios-retry": "^3.5.1",
     "create-keyframe-animation": "^0.1.0",
+    "good-storage": "^1.1.1",
     "lyric-parser": "^1.0.1",
     "vue": "^2.7.7",
     "vue-lazyload": "^1.3.4",

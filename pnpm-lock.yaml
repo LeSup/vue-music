@@ -23,6 +23,9 @@ dependencies:
   create-keyframe-animation:
     specifier: ^0.1.0
     version: 0.1.0
+  good-storage:
+    specifier: ^1.1.1
+    version: 1.1.1
   lyric-parser:
     specifier: ^1.0.1
     version: 1.0.1
@@ -1515,6 +1518,10 @@ packages:
     dependencies:
       type-fest: 0.20.2
     dev: true
+
+  /good-storage@1.1.1:
+    resolution: {integrity: sha512-+0UEpRT03fJgEJoeTVVz41ISC5+jaQrDIWatQ4BoDQfOiBBsjNanymi9sAtLFdEAADQN0FYR8mGpeqxSCe8oXQ==}
+    dev: false
 
   /graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
