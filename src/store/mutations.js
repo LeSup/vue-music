@@ -23,7 +23,13 @@ export default {
   setPlayMode(state, playMode) {
     state.playMode = playMode;
   },
-  setHistoryList(state, list) {
-    state.historyList = list;
+  setSearchHistory(state, list) {
+    state.searchHistory = list;
+  },
+  setFancyList(state, list) {
+    state.fancyList = list;
+  },
+  setPlayHistory(state, list) {
+    state.playHistory = list;
   }
 }

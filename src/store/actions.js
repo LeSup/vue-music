@@ -1,5 +1,5 @@
 import { shuffle } from '@/utils';
-import { history } from '@/utils/cache';
+import { search, fancy, play } from '@/utils/cache';
 import { findIndex } from '@/utils/array';
 import { PlayMode } from './constants';
 
@@ -18,6 +18,31 @@ export function sequencePlay({ commit }, { songs, index }) {
   commit('setPlayIndex', index);
   commit('setPlaying', true);
   commit('setPlayMode', PlayMode.sequence);
+}
+
+export function clearPlay({ commit }) {
+  commit('setSongList', []);
+  commit('setPlayList', []);
+  commit('setPlayIndex', -1);
+  commit('setPlaying', false);
+}
+
+export function removePlay({ commit, state }, index) {
+  const { playList, songList, playIndex, playing } = state;
+  
+  const selectSong = playList[index];
+  const songIndex = findIndex(songList, i => i.id === selectSong.id);
+  const newSongList = [...songList];
+  newSongList.splice(songIndex, 1);
+  const newPlayList = [...playList];
+  newPlayList.splice(index, 1);
+  const newPlayIndex = index < playIndex ? (playIndex - 1) : playIndex;
+  const newPlaying = newPlayList.length ? playing : false;
+
+  commit('setSongList', newSongList);
+  commit('setPlayList', newPlayList);
+  commit('setPlayIndex', newPlayIndex);
+  commit('setPlaying', newPlaying);
 }
 
 // 播放上一首
@@ -112,14 +137,26 @@ export function insertSong({ commit, state, getters }, song) {
   commit('setPlayIndex', pIdx);
 }
 
-export function saveHistory({ commit }, val) {
-  commit('setHistoryList', history.save(val));
+export function saveSearchHistory({ commit }, val) {
+  commit('setSearchHistory', search.save(val));
 }
 
-export function removeHistory({ commit }, val) {
-  commit('setHistoryList', history.remove(val));
+export function removeSearchHistory({ commit }, val) {
+  commit('setSearchHistory', search.remove(val));
 }
 
-export function clearHistory({ commit }) {
-  commit('setHistoryList', history.clear());
+export function clearSearchHistory({ commit }) {
+  commit('setSearchHistory', search.clear());
+}
+
+export function saveFancy({ commit }, val) {
+  commit('setFancyList', fancy.save(val));
+}
+
+export function removeFancy({ commit }, val) {
+  commit('setFancyList', fancy.remove(val));
+}
+
+export function savePlayHistory({ commit }, val) {
+  commit('setPlayHistory', play.save(val));
 }

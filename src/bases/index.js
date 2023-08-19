@@ -7,4 +7,6 @@ export { default as bProgressBar } from './b-progress-bar.vue';
 export { default as bScroll } from './b-scroll.vue';
 export { default as bSearch } from './b-search.vue';
 export { default as bSlide } from './b-slide.vue';
+export { default as bSwitch } from './b-switch.vue';
+export { default as bTopTip } from './b-top-tip.vue';
  

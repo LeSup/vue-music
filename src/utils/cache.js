@@ -3,6 +3,12 @@ import storage from 'good-storage';
 const SEARCH_KEY = '__search__';
 const SEARCH_MAX_LEN = 20;
 
+const FANCY_KEY = '__fancy__';
+const FANCY_MAX_LEN = 20;
+
+const PLAY_KEY = '__play__';
+const PLAY_MAX_LEN = 20;
+
 // 将值插入列表中，重复项删除
 function insertVal(list, val, compareFn, maxLen) {
   const i = list.findIndex(compareFn);
@@ -47,7 +53,7 @@ function clearArray(key) {
 
 const saveSearchArray = createSaveArray(SEARCH_KEY);
 
-export const history = {
+export const search = {
   load() {
     return getArray(SEARCH_KEY);
   },
@@ -59,5 +65,30 @@ export const history = {
   },
   clear() {
     return clearArray(SEARCH_KEY);
+  }
+}
+
+const saveFancyArray = createSaveArray(FANCY_KEY);
+
+export const fancy = {
+  load() {
+    return getArray(FANCY_KEY);
+  },
+  save(val) {
+    return saveFancyArray(list => insertVal(list, val, i => i.id === val.id, FANCY_MAX_LEN));
+  },
+  remove(val) {
+    return saveFancyArray(list => removeVal(list, i => i.id === val.id));
+  }
+}
+
+const savePlayArray = createSaveArray(PLAY_KEY);
+
+export const play = {
+  load() {
+    return getArray(PLAY_KEY);
+  },
+  save(val) {
+    return savePlayArray(list => insertVal(list, val, i => i.id === val.id, PLAY_MAX_LEN));
   }
 }

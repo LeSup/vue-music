@@ -1,4 +1,4 @@
-import { history } from '@/utils/cache';
+import { search, fancy, play } from '@/utils/cache';
 import { PlayMode } from './constants';
 
 export default {
@@ -10,5 +10,7 @@ export default {
   playIndex: -1,
   playing: false,
   playMode: PlayMode.sequence,
-  historyList: history.load()
+  searchHistory: search.load(),
+  fancyList: fancy.load(),
+  playHistory: play.load(),
 }

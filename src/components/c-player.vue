@@ -69,7 +69,7 @@
             <i class="icon icon-prev" @click="playPrev"></i>
             <i class="icon" :class="playCls" @click="handlePlay"></i>
             <i class="icon icon-next" @click="playNext"></i>
-            <i class="icon icon-not-favorite"></i>
+            <i class="icon " :class="getFancyCls(playSong)" @click="toggleFancy(playSong)"></i>
           </div>
         </footer>
       </div>
@@ -95,32 +95,39 @@
           <div class="mini-control" @click.stop="handlePlay">
             <b-play-progress :percent="percent" :playing="playing"></b-play-progress>
           </div>
-          <div class="mini-control">
+          <div class="mini-control" @click.stop="showQueue">
             <div class="icon icon-playlist"></div>
           </div>
         </div>
       </div>
     </transition>
     <audio
-      ref="audio"
-      :src="playSong.url"
-      @timeupdate="handleTimeUpdate"
-      @canplay="handleCanplay"
-      @ended="handleEnd"
+    ref="audio"
+    :src="playSong.url"
+    @timeupdate="handleTimeUpdate"
+    @canplay="handleCanplay"
+    @ended="handleEnd"
     />
+    <c-play-queue ref="queue"></c-play-queue>
   </div>
 </template>
 
 <script>
+import cPlayQueue from './c-play-queue.vue';
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex';
 import LyricParser from 'lyric-parser';
 import animations from 'create-keyframe-animation';
 import { getLyric } from '@/services/song';
+import { modeMixin, fancyMixin } from '@/mixins';
 import { format } from '@/utils';
 import { PlayMode } from '@/store/constants';
 
 export default {
   name: 'c-player',
+  components: {
+    cPlayQueue
+  },
+  mixins: [modeMixin, fancyMixin],
   data() {
     return {
       fullScreen: true,
@@ -133,7 +140,7 @@ export default {
   },
   computed: {
     ...mapState(['playList']),
-    ...mapGetters(['playSong', 'playing', 'playMode']),
+    ...mapGetters(['playSong', 'playing']),
     showPlayer() {
       return !!this.playList.length;
     },
@@ -145,16 +152,6 @@ export default {
     },
     songDuration() {
       return format(this.playSong.duration);
-    },
-    modeCls() {
-      switch (this.playMode) {
-        case PlayMode.sequence:
-          return 'icon-sequence';
-        case PlayMode.random:
-          return 'icon-random';
-        default:
-          return 'icon-loop';
-      }
     },
     playCls() {
       return this.playing ? 'icon-play' : 'icon-pause';
@@ -193,7 +190,7 @@ export default {
   },
   methods: {
     ...mapMutations(['setPlaying']),
-    ...mapActions(['playPrev', 'playNext', 'toggleMode']),
+    ...mapActions(['playPrev', 'playNext', 'savePlayHistory']),
     async getLyric(song) {
       this.loading = true;
       const lyric = await getLyric(song);
@@ -271,16 +268,20 @@ export default {
         y
       };
     },
+    showQueue() {
+      this.$refs.queue.show();
+    },
     /* audio事件 */
     handleCanplay() {
       if (this.canplay) {
         return;
       }
       this.canplay = true;
+      this.savePlayHistory(this.playSong);
       this.togglePlay(true);
     },
     handleEnd() {
-      if (PlayMode.loop === this.playMode) {
+      if (PlayMode.loop === this.playMode || this.playList.length === 1) {
         this.handleChange(0);
       } else {
         this.playNext();

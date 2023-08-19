@@ -2,7 +2,7 @@
   <b-scroll class="c-search-result" ref="scroll" @scrollEnd="handleScrollEnd">
     <ul class="result-list">
       <li class="result-item" v-for="item of songs" :key="item.id" @click="handleClick(item)">
-        <i class="icon" :class="[item.album ? 'icon-music' : 'icon-mine']"></i>
+        <i class="icon" :class="getIconCls(item)"></i>
         <p class="text">{{ item.name }}</p>
       </li>
       <li class="result-item" v-show="hasMore">
@@ -17,6 +17,8 @@
 import { mapActions, mapMutations } from 'vuex';
 import { getSearch } from '@/services/search';
 import { processSongs } from '@/services/song';
+
+const TYPE_SINGER = 'singer';
 
 export default {
   name: 'c-search-result',
@@ -49,7 +51,7 @@ export default {
       const { hasMore, songs = [], singer } = await getSearch(this.value, this.page, this.showSinger);
       const result = await processSongs(songs || []);
       if (singer) {
-        result.unshift(singer);
+        result.unshift({...singer, type: TYPE_SINGER});
       }
       if (insert) {
         this.songs = [...this.songs, ...result];
@@ -67,7 +69,7 @@ export default {
       this.getSearch(true);
     },
     handleClick(item) {
-      if (!item.album) {
+      if (item.type === TYPE_SINGER) {
         this.setSinger(item);
         this.$router.push({ path: `/search/${item.mid}`});
       } else {
@@ -75,10 +77,14 @@ export default {
       }
       this.$emit('click');
     },
+    getIconCls(item) {
+      return item.type === TYPE_SINGER ? 'icon-mine' : 'icon-music';
+    },
     refresh() {
       this.$refs.scroll.refresh();
     },
     clear() {
+      this.songs = [];
       this.hasMore = false;
       this.page = 1;
     }

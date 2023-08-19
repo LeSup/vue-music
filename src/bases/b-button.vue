@@ -23,10 +23,11 @@ export default {
   justify-content: center;
   align-items: center;
   width: 136px;
-  height: 30px;
+  height: 32px;
   color: var(--color-theme);
   border: 1px solid;
   border-radius: 16px;
+  box-sizing: border-box;
 }
 .icon {
   font-size: var(--font-size-medium);

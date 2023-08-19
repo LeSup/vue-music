@@ -15,7 +15,7 @@
                 class="hot-search-item"
                 v-for="item in hotKeys"
                 :key="item.id"
-                @click="clickHotKey(item)"
+                @click="clickHot(item)"
               >
                 {{ item.key }}
               </li>
@@ -24,18 +24,9 @@
           <div class="search-history">
             <div class="search-history-title">
               <div class="text">搜索历史</div>
-              <div class="icon-wrapper" @click="clickClear" v-show="historyList.length">
-                <i class="icon icon-clear"></i>
-              </div>
+              <i class="icon icon-clear" @click="clickClear" v-show="searchHistory.length"></i>
             </div>
-            <ul class="search-history-list">
-              <li class="search-history-item" v-for="item in historyList" :key="item">
-                <div class="text" @click="clickItem(item)">{{ item }}</div>
-                <div class="icon-wrapper" @click="clickDelete(item)">
-                  <i class="icon icon-delete"></i>
-                </div>
-              </li>
-            </ul>
+            <c-history-list :list="searchHistory" @click="clickItem" @delete="deleteItem" />
           </div>
         </div>
       </b-scroll>
@@ -54,23 +45,23 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
 import cSearchResult from '@/components/c-search-result.vue';
-import { playerMixin } from '@/mixins';
+import cHistoryList from '@/components/c-history-list.vue';
+import { playerMixin, searchMixin } from '@/mixins';
 import { getHotKeys } from '@/services/search';
 
 export default {
   name: 'u-search',
-  mixins: [playerMixin],
+  components: {
+    cSearchResult,
+    cHistoryList
+  },
+  mixins: [playerMixin, searchMixin],
   data() {
     return {
-      search: '',
       hotKeys: [],
       loading: false
     };
-  },
-  computed: {
-    ...mapState(['historyList'])
   },
   watch: {
     search(val, oldVal) {
@@ -85,7 +76,6 @@ export default {
     this.getHotKeys();
   },
   methods: {
-    ...mapActions(['saveHistory', 'removeHistory', 'clearHistory']),
     handlePlayList(list) {
       const height = list.length ? 60 : 0;
       this.$refs.container.style.bottom = height + 'px';
@@ -101,29 +91,17 @@ export default {
       this.hotKeys = hotKeys;
       this.loading = false;
     },
-    clickHotKey(item) {
+    clickHot(item) {
       this.search = item.key;
-      this.saveHistory(item.key);
-    },
-    selectSearch() {
-      this.saveHistory(this.search);
+      this.saveSearchHistory(item.key);
     },
     clickClear() {
       this.$refs.confirm.show();
     },
-    clickItem(item) {
-      this.search = item;
-    },
-    clickDelete(item) {
-      this.removeHistory(item);
-    },
     confirm() {
-      this.clearHistory();
+      this.clearSearchHistory();
     }
   },
-  components: {
-    cSearchResult
-  }
 };
 </script>
 
@@ -155,15 +133,12 @@ export default {
   padding: 0 20px;
   font-size: var(--font-size-medium);
   color: var(--color-text-l);
-  .icon-wrapper {
-    .spread-area();
-  }
 }
 .hot-search-list {
   display: flex;
   flex-wrap: wrap;
-  row-gap: 8px;
-  column-gap: 8px;
+  row-gap: 12px;
+  column-gap: 12px;
   margin: 8px 0;
   padding: 0 20px;
   overflow: hidden;
@@ -171,33 +146,10 @@ export default {
 .hot-search-item {
   flex: 0 0 auto;
   padding: 4px 8px;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-medium);
   line-height: 1;
   color: var(--color-text-d);
   background-color: var(--color-highlight-background);
   border-radius: 10px;
-}
-.search-history-list {
-  padding: 12px 20px;
-}
-.search-history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: var(--color-text-d);
-  &:not(:first-child) {
-    margin-top: 12px;
-  }
-  .text {
-    flex: 1;
-    font-size: var(--font-size-medium);
-    .ellipsis();
-  }
-  .icon-wrapper {
-    .spread-area();
-    .icon {
-      font-size: var(--font-size-small);
-    }
-  }
 }
 </style>

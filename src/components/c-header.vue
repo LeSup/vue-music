@@ -4,12 +4,18 @@
       <div class="logo_image"></div>
       <div class="logo_text">Music</div>
     </div>
+    <i class="icon icon-mine" @click="clickMe"></i>
   </header>
 </template>
 
 <script>
 export default {
-  name: 'c-header'
+  name: 'c-header',
+  methods: {
+    clickMe() {
+      this.$router.push({ path: '/me' });
+    }
+  }
 }
 </script>
 
@@ -34,6 +40,13 @@ export default {
   .logo_text {
     margin-left: 4px;
     font-size: var(--font-size-large);
+    color: var(--color-theme);
+  }
+  .icon {
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    font-size: 18px;
     color: var(--color-theme);
   }
 </style>
